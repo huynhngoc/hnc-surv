@@ -6,10 +6,10 @@
 #SBATCH --partition=gpu # Use the verysmallmem-partition for jobs requiring < 10 GB RAM.
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=16
-#SBATCH --mail-user=ngochuyn@nmbu.no # Email me when job is done.
+#SBATCH --mail-user=torjus.strandenes.moen@nmbu.no # Email me when job is done.
 #SBATCH --mail-type=FAIL
-#SBATCH --output=outputs/eff-%A.out
-#SBATCH --error=outputs/eff-%A.out
+#SBATCH --output=outputs/surv-%A.out
+#SBATCH --error=outputs/surv-%A.out
 
 # If you would like to use more please adjust this.
 
@@ -48,12 +48,13 @@ echo "Finished seting up files."
 
 # Hack to ensure that the GPUs work
 nvidia-modprobe -u -c=0
-export MAX_SAVE_STEP_GB=0
+
 # Run experiment
 # export ITER_PER_EPOCH=200
+export MAX_SAVE_STEP_GB=0
 export NUM_CPUS=4
 export RAY_ROOT=$TMPDIR/ray
-singularity exec --nv deoxys-2023-feb-fixed.sif python experiment_outcome.py $1 $PROJECTS/ngoc/hn_surv/perf/$2 --temp_folder $SCRATCH_PROJECTS/ceheads/hn_surv/$2 --analysis_folder $SCRATCH_PROJECTS/ceheads/hn_surv_analysis/$2 --epochs $3 ${@:4}
+singularity exec --nv deoxys-survival.sif python experiment_survival.py $1 $PROJECTS/ngoc/hn_surv/perf/$2 --temp_folder $SCRATCH_PROJECTS/ceheads/hn_surv/$2 --analysis_folder $SCRATCH_PROJECTS/ceheads/hn_surv_analysis/$2 --epochs $3 ${@:4}
 
 # echo "Finished training. Post-processing results"
 

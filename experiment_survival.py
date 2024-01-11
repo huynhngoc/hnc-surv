@@ -87,7 +87,7 @@ if __name__ == '__main__':
     parser.add_argument("--prediction_checkpoint_period", default=1, type=int)
     parser.add_argument("--meta", default='patient_idx', type=str)
     parser.add_argument(
-        "--monitor", default='avg_score', type=str)
+        "--monitor", default='CI', type=str)
     parser.add_argument(
         "--monitor_mode", default='max', type=str)
     parser.add_argument("--memory_limit", default=0, type=int)
