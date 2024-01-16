@@ -11,6 +11,7 @@ from tensorflow.keras.layers import Input, concatenate, Lambda, \
 from tensorflow.keras.models import Model as KerasModel
 import numpy as np
 import tensorflow as tf
+import tensorflow.keras.backend as K
 from deoxys.model.callbacks import PredictionCheckpoint
 from deoxys.loaders.architecture import BaseModelLoader
 from deoxys.experiment import Experiment
@@ -89,6 +90,36 @@ class CropImage(BasePreprocessor):
         return np.array(new_images), targets
 
 
+@custom_preprocessor
+class MakeSurvArray(BasePreprocessor):
+    """Transforms censored survival data into vector format that can be used in Keras.
+       Arguments
+           t: Array of failure/censoring times.
+           f: Censoring indicator. 1 if failed, 0 if censored.
+           breaks: Locations of breaks between time intervals for discrete-time survival model (always includes 0)
+       Returns
+           Two-dimensional array of survival data, dimensions are number of individuals X number of time intervals*2
+     """
+    def __init__(self, breaks):
+            self.breaks = breaks
+
+    def transform(self, targets):
+        t = targets[:, 1]
+        f = targets[:, 0]
+        n_samples = t.shape[0]
+        n_intervals = len(self.breaks) - 1
+        timegap = self.breaks[1:] - self.breaks[:-1]
+        breaks_midpoint = self.breaks[:-1] + 0.5 * timegap
+        y_train = np.zeros((n_samples, n_intervals * 2))
+        for i in range(n_samples):
+            if f[i]:  # if failed (not censored)
+                y_train[i, 0:n_intervals] = 1.0 * (t[i] >= self.breaks[1:])  # give credit for surviving each time interval where failure time >= upper limit
+                if t[i] < self.breaks[-1]:  # if failure time is greater than end of last time interval, no time interval will have failure marked
+                    y_train[i, n_intervals + np.where(t[i] < self.breaks[1:])[0][
+                        0]] = 1  # mark failure at first bin where survival time < upper break-point
+            else:  # if censored
+                y_train[i, 0:n_intervals] = 1.0 * (t[i] >= breaks_midpoint)  # if censored and lived more than half-way through interval, give credit for surviving the interval.
+        return y_train
 
 
 @custom_layer
@@ -100,6 +131,40 @@ class InstanceNormalization(tfa.layers.InstanceNormalization):
 class AddResize(Add):
     pass
 
+@custom_loss
+class NegativeLogLikelihood(Loss):
+    """
+    Negative log likelihood taken from
+    https://gitlab.physik.uni-muenchen.de/LDAP_ag-E2ERadiomics/dl_based_prognosis/-/blob/
+    master/auxiliary/nnet_survival.py?ref_type=heads
+    """
+    def __init__(
+            self, loss_config, reduction="auto", name="negative_log_likelihood_loss"):
+        super().__init__(reduction, name)
+        self.loss = loss_from_config(loss_config)
+
+    def call(self, target, prediction):
+        # tf.print("Target shape:", tf.shape(target))
+        # tf.print("Target content:", target)
+        # tf.print("Pred shape:", tf.shape(prediction))
+        # tf.print("Pred content:", prediction)
+        return self.loss(target[:, 1], 1 - prediction)
+        """
+           Arguments
+               y_true: Tensor.
+                 First half of the values is 1 if individual survived that interval, 0 if not.
+                 Second half of the values is for individuals who failed, and is 1 for time interval during which failure occured, 0 for other intervals.
+                 See make_surv_array function.
+               y_pred: Tensor, predicted survival probability (1-hazard probability) for each time interval.
+           Returns
+               Vector of losses for this minibatch.
+           """
+    #     cens_uncens = 1. + y_true[:, 0:n_intervals] * (y_pred - 1.)  # component for all individuals
+    #     uncens = 1. - y_true[:, n_intervals:2 * n_intervals] * y_pred  # component for only uncensored individuals
+    #     return K.sum(-K.log(K.clip(K.concatenate((cens_uncens, uncens)), K.epsilon(), None)),
+    #                  axis=-1)  # return -log likelihood
+    #
+    # return loss
 
 @custom_loss
 class BinaryMacroFbetaLoss(Loss):

@@ -5,10 +5,10 @@
     "dataset_params": {
         "class_name": "H5Reader",
         "config": {
-            "filename": "P:/REALTEK-HeadNeck-Project/Masteroppgaver_2024/Torjus/HNC dataset/outcome_ous.h5",
+            "filename": "C:/Users/Windows User/Documents/UNI/M30-DV/HNC dataset/outcome_ous.h5",
             "batch_size": 2,
             "x_name": "image",
-            "y_name": "DFS_surv",
+            "y_name": "OS_surv",
             "batch_cache": 4,
             "shuffle": true,
             "train_folds": [
@@ -75,7 +75,7 @@
     },
     "model_params": {
         "loss": {
-            "class_name": "SurvLoss",
+            "class_name": "NegativeLogLikelihood",
             "config":{
                 "loss_config": {
                     "class_name": "MeanSquaredError"

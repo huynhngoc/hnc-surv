@@ -6,7 +6,7 @@ After running 3 epochs, the performance of the training process can be accessed
 as log file and perforamance plot.
 In addition, we can peek the result of 42 first images from prediction set.
 """
-
+    
 import customize_obj
 # import h5py
 # from tensorflow.keras.callbacks import EarlyStopping
@@ -38,7 +38,7 @@ class CI_scorer:
         return ci
 
     def _score_func(self, *args, **kwargs):
-        ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 1].flatten(), **kwargs)
+        ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 0].flatten(), **kwargs)
         return ci
 
 try:
@@ -47,7 +47,7 @@ try:
 except:
     pass
 try:
-    metrics.SCORERS['mcc'] = Matthews_corrcoef_scorer()
+    metrics._scorer._SCORERS['mcc'] = Matthews_corrcoef_scorer()
     metrics._scorer._SCORERS['CI'] = CI_scorer()
 except:
     pass
