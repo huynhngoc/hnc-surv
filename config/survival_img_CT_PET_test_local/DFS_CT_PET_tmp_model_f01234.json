@@ -79,7 +79,8 @@
             "config":{
                 "loss_config": {
                     "class_name": "MeanSquaredError"
-                }
+                },
+                "n_intervals": 20
             }
         },
         "optimizer": {

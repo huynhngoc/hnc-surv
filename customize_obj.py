@@ -103,7 +103,7 @@ class MakeSurvArray(BasePreprocessor):
     def __init__(self, breaks):
             self.breaks = breaks
 
-    def transform(self, targets):
+    def transform(self, data, targets):
         t = targets[:, 1]
         f = targets[:, 0]
         n_samples = t.shape[0]
@@ -119,7 +119,7 @@ class MakeSurvArray(BasePreprocessor):
                         0]] = 1  # mark failure at first bin where survival time < upper break-point
             else:  # if censored
                 y_train[i, 0:n_intervals] = 1.0 * (t[i] >= breaks_midpoint)  # if censored and lived more than half-way through interval, give credit for surviving the interval.
-        return y_train
+        return data, y_train
 
 
 @custom_layer
@@ -139,33 +139,26 @@ class NegativeLogLikelihood(Loss):
     master/auxiliary/nnet_survival.py?ref_type=heads
     """
     def __init__(
-            self, loss_config, reduction="auto", name="negative_log_likelihood_loss"):
+            self, loss_config, n_intervals, reduction="auto", name="negative_log_likelihood_loss"):
         super().__init__(reduction, name)
         self.loss = loss_from_config(loss_config)
+        self.n_intervals = n_intervals
 
     def call(self, target, prediction):
-        # tf.print("Target shape:", tf.shape(target))
-        # tf.print("Target content:", target)
-        # tf.print("Pred shape:", tf.shape(prediction))
-        # tf.print("Pred content:", prediction)
-        return self.loss(target[:, 1], 1 - prediction)
         """
-           Arguments
-               y_true: Tensor.
-                 First half of the values is 1 if individual survived that interval, 0 if not.
-                 Second half of the values is for individuals who failed, and is 1 for time interval during which failure occured, 0 for other intervals.
-                 See make_surv_array function.
-               y_pred: Tensor, predicted survival probability (1-hazard probability) for each time interval.
-           Returns
-               Vector of losses for this minibatch.
+        Arguments
+           y_true: Tensor.
+             First half of the values is 1 if individual survived that interval, 0 if not.
+             Second half of the values is for individuals who failed, and is 1 for time interval during which failure occured, 0 for other intervals.
+             See make_surv_array function.
+           y_pred: Tensor, predicted survival probability (1-hazard probability) for each time interval.
+        Returns
+           Vector of losses for this minibatch.
            """
-    #     cens_uncens = 1. + y_true[:, 0:n_intervals] * (y_pred - 1.)  # component for all individuals
-    #     uncens = 1. - y_true[:, n_intervals:2 * n_intervals] * y_pred  # component for only uncensored individuals
-    #     return K.sum(-K.log(K.clip(K.concatenate((cens_uncens, uncens)), K.epsilon(), None)),
-    #                  axis=-1)  # return -log likelihood
-    #
-    # return loss
-
+        cens_uncens = 1. + target[:, 0:self.n_intervals] * (prediction - 1.)  # component for all individuals
+        uncens = 1. - target[:, self.n_intervals:2 * self.n_intervals] * prediction  # component for only uncensored individuals
+        return K.sum(-K.log(K.clip(K.concatenate((cens_uncens, uncens)), K.epsilon(), None)), axis=-1)  # return -log likelihood
+        #return self.loss(target[:, 1], 1 - prediction)
 @custom_loss
 class BinaryMacroFbetaLoss(Loss):
     def __init__(self, reduction='auto', name="binary_macro_fbeta",
