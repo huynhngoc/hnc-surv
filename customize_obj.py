@@ -101,7 +101,7 @@ class MakeSurvArray(BasePreprocessor):
            Two-dimensional array of survival data, dimensions are number of individuals X number of time intervals*2
      """
     def __init__(self, breaks):
-            self.breaks = breaks
+            self.breaks = np.array(breaks)
 
     def transform(self, data, targets):
         t = targets[:, 1]
@@ -119,7 +119,7 @@ class MakeSurvArray(BasePreprocessor):
                         0]] = 1  # mark failure at first bin where survival time < upper break-point
             else:  # if censored
                 y_train[i, 0:n_intervals] = 1.0 * (t[i] >= breaks_midpoint)  # if censored and lived more than half-way through interval, give credit for surviving the interval.
-        return data, y_train
+        return data, np.concatenate([y_train, targets], axis=-1) # add the original data in the end
 
 
 @custom_layer
@@ -139,9 +139,8 @@ class NegativeLogLikelihood(Loss):
     master/auxiliary/nnet_survival.py?ref_type=heads
     """
     def __init__(
-            self, loss_config, n_intervals, reduction="auto", name="negative_log_likelihood_loss"):
+            self, n_intervals, reduction="auto", name="negative_log_likelihood_loss"):
         super().__init__(reduction, name)
-        self.loss = loss_from_config(loss_config)
         self.n_intervals = n_intervals
 
     def call(self, target, prediction):
@@ -155,6 +154,7 @@ class NegativeLogLikelihood(Loss):
         Returns
            Vector of losses for this minibatch.
            """
+        target = target[:, :-2] # remove the last two
         cens_uncens = 1. + target[:, 0:self.n_intervals] * (prediction - 1.)  # component for all individuals
         uncens = 1. - target[:, self.n_intervals:2 * self.n_intervals] * prediction  # component for only uncensored individuals
         return K.sum(-K.log(K.clip(K.concatenate((cens_uncens, uncens)), K.epsilon(), None)), axis=-1)  # return -log likelihood
