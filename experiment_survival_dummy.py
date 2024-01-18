@@ -23,7 +23,6 @@ import numpy as np
 from sklearn import metrics
 from sklearn.metrics import matthews_corrcoef
 from sksurv.metrics import concordance_index_censored
-from lifelines.utils import concordance_index
 import customize_obj
 
 
@@ -34,6 +33,7 @@ class Matthews_corrcoef_scorer:
     def _score_func(self, *args, **kwargs):
         return matthews_corrcoef(*args, **kwargs)
 
+
 class CI_scorer:
     def __call__(self, *args, **kwargs):
         ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 0].flatten(), **kwargs)
@@ -43,36 +43,14 @@ class CI_scorer:
         ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 0].flatten(), **kwargs)
         return ci
 
-class HCI_scorer:
-    def __call__(self, y_true, y_pred, num_year=5, **kwargs):
-        # ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 1].flatten(), **kwargs)
-        event = y_true[:, -2]
-        time = y_true[:, -1]
-        no_time_interval = y_pred.shape[-1]
-        breaks = np.arange(0, 61, 60//(no_time_interval))
-        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=num_year*12)[0][0]], axis=1)[:,-1]
-        return concordance_index(time, predicted_score, event)
-
-    def _score_func(self, y_true, y_pred, num_year=5, **kwargs):
-        #ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 0].flatten(), **kwargs)
-        event = y_true[:, -2]
-        time = y_true[:, -1]
-        no_time_interval = y_pred.shape[-1]
-        breaks = np.arange(0, 61, 60//(no_time_interval))
-        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=num_year*12)[0][0]], axis=1)[:,-1]
-        return concordance_index(time, predicted_score, event)
-
-
 try:
     metrics.SCORERS['mcc'] = Matthews_corrcoef_scorer()
     metrics.SCORERS['CI'] = CI_scorer()
-    metrics.SCORERS['HCI'] = HCI_scorer()
 except:
     pass
 try:
     metrics._scorer._SCORERS['mcc'] = Matthews_corrcoef_scorer()
     metrics._scorer._SCORERS['CI'] = CI_scorer()
-    metrics._scorer._SCORERS['HCI'] = HCI_scorer()
 except:
     pass
 
@@ -110,7 +88,7 @@ if __name__ == '__main__':
     parser.add_argument("--prediction_checkpoint_period", default=1, type=int)
     parser.add_argument("--meta", default='patient_idx', type=str)
     parser.add_argument(
-        "--monitor", default='HCI_5yr', type=str)
+        "--monitor", default='CI', type=str)
     parser.add_argument(
         "--monitor_mode", default='max', type=str)
     parser.add_argument("--memory_limit", default=0, type=int)
@@ -173,10 +151,10 @@ if __name__ == '__main__':
         class_weight=class_weight,
     ).apply_post_processors(
         map_meta_data=meta,
-        metrics=['HCI', 'HCI'],
-        metrics_sources=['sklearn', 'sklearn'],
-        process_functions=[None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {'metric_name': 'HCI_1yr', 'num_year': 1}]
+        metrics=['CI'],
+        metrics_sources=['sklearn'],
+        process_functions=[None],
+        metrics_kwargs=[{}]
     ).plot_performance().load_best_model(
         monitor=args.monitor,
         use_raw_log=False,
@@ -185,8 +163,8 @@ if __name__ == '__main__':
     ).run_test(
     ).apply_post_processors(
         map_meta_data=meta, run_test=True,
-        metrics=['HCI', 'HCI'],
-        metrics_sources=['sklearn', 'sklearn'],
-        process_functions=[None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {'metric_name': 'HCI_1yr', 'num_year': 1}]
+        metrics=['CI'],
+        metrics_sources=['sklearn'],
+        process_functions=[None],
+        metrics_kwargs=[{}]
     )

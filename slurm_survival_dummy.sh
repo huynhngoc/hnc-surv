@@ -54,7 +54,7 @@ nvidia-modprobe -u -c=0
 export MAX_SAVE_STEP_GB=0
 export NUM_CPUS=4
 export RAY_ROOT=$TMPDIR/ray
-singularity exec --nv deoxys-survival.sif python experiment_survival.py $1 $PROJECTS/ngoc/hn_surv/perf/$2 --temp_folder $SCRATCH_PROJECTS/ceheads/hn_surv/$2 --analysis_folder $SCRATCH_PROJECTS/ceheads/hn_surv_analysis/$2 --epochs $3 ${@:4}
+singularity exec --nv deoxys-survival.sif python experiment_survival_dummy.py $1 $PROJECTS/ngoc/hn_surv/perf/$2 --temp_folder $SCRATCH_PROJECTS/ceheads/hn_surv/$2 --analysis_folder $SCRATCH_PROJECTS/ceheads/hn_surv_analysis/$2 --epochs $3 ${@:4}
 
 # echo "Finished training. Post-processing results"
 
