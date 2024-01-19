@@ -44,22 +44,25 @@ class CI_scorer:
         return ci
 
 class HCI_scorer:
-    def __call__(self, y_true, y_pred, num_year=5, **kwargs):
+    def __init__(self, num_year=5):
+        self.num_year = num_year
+
+    def __call__(self, y_true, y_pred, **kwargs):
         # ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 1].flatten(), **kwargs)
         event = y_true[:, -2]
         time = y_true[:, -1]
         no_time_interval = y_pred.shape[-1]
         breaks = np.arange(0, 61, 60//(no_time_interval))
-        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=num_year*12)[0][0]], axis=1)[:,-1]
+        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=self.num_year*12)[0][0]], axis=1)[:,-1]
         return concordance_index(time, predicted_score, event)
 
-    def _score_func(self, y_true, y_pred, num_year=5, **kwargs):
+    def _score_func(self, y_true, y_pred, **kwargs):
         #ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 0].flatten(), **kwargs)
         event = y_true[:, -2]
         time = y_true[:, -1]
         no_time_interval = y_pred.shape[-1]
         breaks = np.arange(0, 61, 60//(no_time_interval))
-        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=num_year*12)[0][0]], axis=1)[:,-1]
+        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=self.num_year*12)[0][0]], axis=1)[:,-1]
         return concordance_index(time, predicted_score, event)
 
 
@@ -67,12 +70,14 @@ try:
     metrics.SCORERS['mcc'] = Matthews_corrcoef_scorer()
     metrics.SCORERS['CI'] = CI_scorer()
     metrics.SCORERS['HCI'] = HCI_scorer()
+    metrics.SCORERS['HCI_1yr'] = HCI_scorer(num_year=1)
 except:
     pass
 try:
     metrics._scorer._SCORERS['mcc'] = Matthews_corrcoef_scorer()
     metrics._scorer._SCORERS['CI'] = CI_scorer()
     metrics._scorer._SCORERS['HCI'] = HCI_scorer()
+    metrics._scorer._SCORERS['HCI_1yr'] = HCI_scorer(num_year=1)
 except:
     pass
 
@@ -173,10 +178,10 @@ if __name__ == '__main__':
         class_weight=class_weight,
     ).apply_post_processors(
         map_meta_data=meta,
-        metrics=['HCI', 'HCI'],
+        metrics=['HCI', 'HCI_1yr'],
         metrics_sources=['sklearn', 'sklearn'],
         process_functions=[None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {'metric_name': 'HCI_1yr', 'num_year': 1}]
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {'metric_name': 'HCI_1yr'}]
     ).plot_performance().load_best_model(
         monitor=args.monitor,
         use_raw_log=False,
@@ -185,8 +190,8 @@ if __name__ == '__main__':
     ).run_test(
     ).apply_post_processors(
         map_meta_data=meta, run_test=True,
-        metrics=['HCI', 'HCI'],
+        metrics=['HCI', 'HCI_1yr'],
         metrics_sources=['sklearn', 'sklearn'],
         process_functions=[None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {'metric_name': 'HCI_1yr', 'num_year': 1}]
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {'metric_name': 'HCI_1yr'}]
     )
