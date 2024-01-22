@@ -63,8 +63,11 @@ class HCI_scorer:
         return concordance_index(time, predicted_score, event)
 
 class AUC_scorer:
+    """
+    AUC score on actual survival and predicted probability for each time interval
+    """
     def __call__(self, y_true, y_pred, **kwargs):
-        true = y_true[:, :10]
+        true = y_true[:, :10]  # first ten items of y_true: 1 if individual survived that interval, 0 if not.
         return roc_auc_score(true, y_pred)
 
     def _score_func(self, y_true, y_pred, **kwargs):
