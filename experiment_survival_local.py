@@ -23,6 +23,7 @@ import numpy as np
 from sklearn import metrics
 from sklearn.metrics import matthews_corrcoef
 from sksurv.metrics import concordance_index_censored
+from sklearn.metrics import roc_curve, auc, roc_auc_score
 from lifelines.utils import concordance_index
 
 
@@ -61,17 +62,32 @@ class HCI_scorer:
         predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=num_year*12)[0][0]], axis=1)[:,-1]
         return concordance_index(time, predicted_score, event)
 
+class AUC_scorer:
+    def __call__(self, y_true, y_pred, **kwargs):
+        true = y_true[:, :10]
+        return roc_auc_score(true, y_pred)
+
+    def _score_func(self, y_true, y_pred, **kwargs):
+        true = y_true[:, :10]
+        score = roc_auc_score(true, y_pred)
+        print(score)
+        print("hello")
+        return roc_auc_score(true, y_pred)
+
+
 
 try:
     metrics.SCORERS['mcc'] = Matthews_corrcoef_scorer()
     metrics.SCORERS['CI'] = CI_scorer()
     metrics.SCORERS['HCI'] = HCI_scorer()
+    metrics.SCORERS['AUC'] = AUC_scorer()
 except:
     pass
 try:
     metrics._scorer._SCORERS['mcc'] = Matthews_corrcoef_scorer()
     metrics._scorer._SCORERS['CI'] = CI_scorer()
     metrics._scorer._SCORERS['HCI'] = HCI_scorer()
+    metrics._scorer._SCORERS['AUC'] = AUC_scorer()
 except:
     pass
 
@@ -167,8 +183,8 @@ if __name__ == '__main__':
         class_weight=class_weight,
     ).apply_post_processors(
         map_meta_data=meta,
-        metrics=['HCI', 'HCI'],
-        metrics_sources=['sklearn', 'sklearn'],
+        metrics=['AUC'],
+        metrics_sources=['sklearn'],
         process_functions=[None, None],
         metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {'metric_name': 'HCI_1yr', 'num_year': 1}]
     ).plot_performance().load_best_model(
@@ -179,8 +195,8 @@ if __name__ == '__main__':
     ).run_test(
     ).apply_post_processors(
         map_meta_data=meta, run_test=True,
-        metrics=['HCI', 'HCI'],
-        metrics_sources=['sklearn', 'sklearn'],
+        metrics=['AUC'],
+        metrics_sources=['sklearn'],
         process_functions=[None, None],
         metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {'metric_name': 'HCI_1yr', 'num_year': 1}]
     )

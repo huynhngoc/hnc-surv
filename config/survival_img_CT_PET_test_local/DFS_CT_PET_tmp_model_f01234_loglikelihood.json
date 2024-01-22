@@ -5,7 +5,7 @@
     "dataset_params": {
         "class_name": "H5Reader",
         "config": {
-            "filename": "P:/REALTEK-HeadNeck-Project/Masteroppgaver_2024/Torjus/HNC dataset/outcome_ous.h5",
+            "filename": "C:/Users/Windows User/Documents/UNI/M30-DV/HNC dataset/outcome_ous.h5",
             "batch_size": 2,
             "x_name": "image",
             "y_name": "OS_surv",

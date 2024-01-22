@@ -20,7 +20,7 @@ from deoxys.utils import file_finder, load_json_config
 from deoxys.customize import custom_architecture, custom_datareader, custom_layer
 from deoxys.loaders import load_data
 from deoxys.data.data_reader import HDF5Reader, HDF5DataGenerator, \
-    DataReader, DataGenerator
+    DataReader  , DataGenerator
 from deoxys.model.layers import layer_from_config
 # from tensorflow.python.ops.gen_math_ops import square
 import tensorflow_addons as tfa
@@ -158,7 +158,7 @@ class NegativeLogLikelihood(Loss):
         cens_uncens = 1. + target[:, 0:self.n_intervals] * (prediction - 1.)  # component for all individuals
         uncens = 1. - target[:, self.n_intervals:2 * self.n_intervals] * prediction  # component for only uncensored individuals
         return K.sum(-K.log(K.clip(K.concatenate((cens_uncens, uncens)), K.epsilon(), None)), axis=-1)  # return -log likelihood
-        #return self.loss(target[:, 1], 1 - prediction)
+
 @custom_loss
 class BinaryMacroFbetaLoss(Loss):
     def __init__(self, reduction='auto', name="binary_macro_fbeta",
