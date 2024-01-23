@@ -31,6 +31,7 @@ from deoxys.data import ImageAugmentation2D
 from elasticdeform import deform_random_grid
 import new_layer
 import os
+from sksurv.metrics import brier_score
 
 multi_input_layers = ['Add', 'AddResize', 'Concatenate', 'Multiply', 'Average']
 resize_input_layers = ['Concatenate', 'AddResize']
@@ -158,6 +159,28 @@ class NegativeLogLikelihood(Loss):
         cens_uncens = 1. + target[:, 0:self.n_intervals] * (prediction - 1.)  # component for all individuals
         uncens = 1. - target[:, self.n_intervals:2 * self.n_intervals] * prediction  # component for only uncensored individuals
         return K.sum(-K.log(K.clip(K.concatenate((cens_uncens, uncens)), K.epsilon(), None)), axis=-1)  # return -log likelihood
+
+@custom_loss
+class BrierScoreLoss(Loss):
+    def __init__(
+            self, reduction="auto", name="negative_log_likelihood_loss"):
+        super().__init__(reduction, name)
+
+    def call(self, target, prediction):
+        """
+        Arguments
+           y_true: Tensor.
+             First half of the values is 1 if individual survived that interval, 0 if not.
+             Second half of the values is for individuals who failed, and is 1 for time interval during which failure occured, 0 for other intervals.
+             See make_surv_array function.
+           y_pred: Tensor, predicted survival probability (1-hazard probability) for each time interval.
+        Returns
+           Brier Score loss.
+           """
+        true = target[:, :10]  # first ten items of target: 1 if individual survived that interval, 0 if not.
+        times, score = brier_score()
+        return score
+
 
 @custom_loss
 class BinaryMacroFbetaLoss(Loss):

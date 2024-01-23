@@ -73,8 +73,6 @@ class AUC_scorer:
     def _score_func(self, y_true, y_pred, **kwargs):
         true = y_true[:, :10]
         score = roc_auc_score(true, y_pred)
-        print(score)
-        print("hello")
         return roc_auc_score(true, y_pred)
 
 
@@ -186,10 +184,10 @@ if __name__ == '__main__':
         class_weight=class_weight,
     ).apply_post_processors(
         map_meta_data=meta,
-        metrics=['AUC'],
-        metrics_sources=['sklearn'],
+        metrics=['HCI','AUC'],
+        metrics_sources=['sklearn', 'sklearn'],
         process_functions=[None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {'metric_name': 'HCI_1yr', 'num_year': 1}]
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}]
     ).plot_performance().load_best_model(
         monitor=args.monitor,
         use_raw_log=False,
@@ -198,8 +196,8 @@ if __name__ == '__main__':
     ).run_test(
     ).apply_post_processors(
         map_meta_data=meta, run_test=True,
-        metrics=['AUC'],
-        metrics_sources=['sklearn'],
+        metrics=['HCI', 'AUC'],
+        metrics_sources=['sklearn', 'sklearn'],
         process_functions=[None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {'metric_name': 'HCI_1yr', 'num_year': 1}]
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}]
     )
