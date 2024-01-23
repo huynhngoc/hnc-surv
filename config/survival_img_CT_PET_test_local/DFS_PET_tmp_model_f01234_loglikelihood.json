@@ -34,22 +34,12 @@
                     }
                 },
                 {
-                    "class_name": "HounsfieldWindowingPreprocessor",
-                    "config": {
-                        "window_center": 70,
-                        "window_width": 200,
-                        "channel": 0
-                    }
-                },
-                {
                     "class_name": "ImageNormalizerPreprocessor",
                     "config": {
                         "vmin": [
-                            -100,
                             0
                         ],
                         "vmax": [
-                            100,
                             25
                         ]
                     }
