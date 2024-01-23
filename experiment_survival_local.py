@@ -22,7 +22,7 @@ import numpy as np
 # from comet_ml import Experiment as CometEx
 from sklearn import metrics
 from sklearn.metrics import matthews_corrcoef
-from sksurv.metrics import concordance_index_censored
+from sksurv.metrics import concordance_index_censored, integrated_brier_score
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 from lifelines.utils import concordance_index
 
@@ -75,6 +75,29 @@ class AUC_scorer:
         score = roc_auc_score(true, y_pred)
         return roc_auc_score(true, y_pred)
 
+class IBS_scorer:
+    """
+    Integrated Brier Score on actual survival and predicted probability over all time intervals
+    """
+    def __call__(self, y_true, y_pred, **kwargs):
+        event = y_true[:, -2]
+        time = y_true[:, -1]
+        survival_train = np.array(list(zip(event, time)))
+        dtype = [('event', bool), ('time', np.float64)]
+        structured_survival_train = np.array(list(map(tuple, survival_train)), dtype=dtype)
+        times = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
+        score = integrated_brier_score(structured_survival_train, structured_survival_train, y_pred, times)
+        return score
+
+    def _score_func(self, y_true, y_pred, **kwargs):
+        event = y_true[:, -2]
+        time = y_true[:, -1]
+        survival_train = np.array(list(zip(event, time)))
+        dtype = [('event', bool), ('time', np.float64)]
+        structured_survival_train = np.array(list(map(tuple, survival_train)), dtype=dtype)
+        times = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
+        score = integrated_brier_score(structured_survival_train, structured_survival_train, y_pred, times)
+        return score
 
 
 try:
@@ -82,6 +105,7 @@ try:
     metrics.SCORERS['CI'] = CI_scorer()
     metrics.SCORERS['HCI'] = HCI_scorer()
     metrics.SCORERS['AUC'] = AUC_scorer()
+    metrics.SCORERS['IBS'] = IBS_scorer()
 except:
     pass
 try:
@@ -89,6 +113,7 @@ try:
     metrics._scorer._SCORERS['CI'] = CI_scorer()
     metrics._scorer._SCORERS['HCI'] = HCI_scorer()
     metrics._scorer._SCORERS['AUC'] = AUC_scorer()
+    metrics._scorer._SCORERS['IBS'] = IBS_scorer()
 except:
     pass
 
@@ -184,10 +209,10 @@ if __name__ == '__main__':
         class_weight=class_weight,
     ).apply_post_processors(
         map_meta_data=meta,
-        metrics=['HCI','AUC'],
-        metrics_sources=['sklearn', 'sklearn'],
-        process_functions=[None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}]
+        metrics=['HCI', 'AUC', 'IBS'],
+        metrics_sources=['sklearn', 'sklearn', 'sklearn'],
+        process_functions=[None, None, None],
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}, {}]
     ).plot_performance().load_best_model(
         monitor=args.monitor,
         use_raw_log=False,
@@ -196,8 +221,8 @@ if __name__ == '__main__':
     ).run_test(
     ).apply_post_processors(
         map_meta_data=meta, run_test=True,
-        metrics=['HCI', 'AUC'],
-        metrics_sources=['sklearn', 'sklearn'],
-        process_functions=[None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}]
+        metrics=['HCI', 'AUC', 'IBS'],
+        metrics_sources=['sklearn', 'sklearn', 'sklearn'],
+        process_functions=[None, None, None],
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}, {}]
     )

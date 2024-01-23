@@ -93,14 +93,6 @@ class CropImage(BasePreprocessor):
 
 @custom_preprocessor
 class MakeSurvArray(BasePreprocessor):
-    """Transforms censored survival data into vector format that can be used in Keras.
-       Arguments
-           t: Array of failure/censoring times.
-           f: Censoring indicator. 1 if failed, 0 if censored.
-           breaks: Locations of breaks between time intervals for discrete-time survival model (always includes 0)
-       Returns
-           Two-dimensional array of survival data, dimensions are number of individuals X number of time intervals*2
-     """
     def __init__(self, breaks):
             self.breaks = np.array(breaks)
 
