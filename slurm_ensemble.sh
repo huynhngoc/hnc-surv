@@ -51,7 +51,7 @@ nvidia-modprobe -u -c=0
 # export ITER_PER_EPOCH=200
 export NUM_CPUS=4
 export RAY_ROOT=$TMPDIR/ray
-singularity exec --nv deoxys-survival.sif python ensemble_outcome.py /net/fs-1/Ngoc/hnperf/$1 $2 ${@:3}
+singularity exec --nv deoxys-survival.sif python ensemble_outcome.py $PROJECTS/ngoc/hn_surv/perf/$1 $2 ${@:3}
 
 # echo "Finished training. Post-processing results"
 
