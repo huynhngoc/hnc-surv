@@ -43,23 +43,27 @@ class CI_scorer:
         return ci
 
 class HCI_scorer:
-    def __call__(self, y_true, y_pred, num_year=5, **kwargs):
+    def __init__(self, num_year=5):
+        self.num_year = num_year
+
+    def __call__(self, y_true, y_pred, **kwargs):
         # ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 1].flatten(), **kwargs)
         event = y_true[:, -2]
         time = y_true[:, -1]
         no_time_interval = y_pred.shape[-1]
         breaks = np.arange(0, 61, 60//(no_time_interval))
-        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=num_year*12)[0][0]], axis=1)[:,-1]
+        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=self.num_year*12)[0][0]], axis=1)[:,-1]
         return concordance_index(time, predicted_score, event)
 
-    def _score_func(self, y_true, y_pred, num_year=5, **kwargs):
+    def _score_func(self, y_true, y_pred, **kwargs):
         #ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 0].flatten(), **kwargs)
         event = y_true[:, -2]
         time = y_true[:, -1]
         no_time_interval = y_pred.shape[-1]
         breaks = np.arange(0, 61, 60//(no_time_interval))
-        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=num_year*12)[0][0]], axis=1)[:,-1]
+        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=self.num_year*12)[0][0]], axis=1)[:,-1]
         return concordance_index(time, predicted_score, event)
+
 
 class AUC_scorer:
     """

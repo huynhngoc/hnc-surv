@@ -5,7 +5,7 @@
 #SBATCH --mem=64G                 # Default memory per CPU is 3GB.
 #SBATCH --partition=smallmem # Use the verysmallmem-partition for jobs requiring < 10 GB RAM.
 #SBATCH --mail-user=torjus.strandenes.moen@nmbu.no # Email me when job is done.
-#SBATCH --mail-type=ALL
+#SBATCH --mail-type=FAIL
 #SBATCH --output=outputs/ensemble-%A.out
 #SBATCH --error=outputs/ensemble-%A.out
 
