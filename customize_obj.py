@@ -155,24 +155,51 @@ class NegativeLogLikelihood(Loss):
 @custom_loss
 class BrierScoreLoss(Loss):
     def __init__(
-            self, reduction="auto", name="negative_log_likelihood_loss"):
+            self, n_intervals, reduction="auto", name="brier_score_loss"):
         super().__init__(reduction, name)
+        self.n_intervals = n_intervals
 
     def call(self, target, prediction):
         """
         Arguments
-           y_true: Tensor.
+           target: Tensor.
              First half of the values is 1 if individual survived that interval, 0 if not.
              Second half of the values is for individuals who failed, and is 1 for time interval during which failure occured, 0 for other intervals.
              See make_surv_array function.
-           y_pred: Tensor, predicted survival probability (1-hazard probability) for each time interval.
+           prediction: Tensor, predicted survival probability (1-hazard probability) for each time interval.
         Returns
            Brier Score loss.
            """
-        true = target[:, :10]  # first ten items of target: 1 if individual survived that interval, 0 if not.
-        times, score = brier_score()
-        return score
+        target = target[:, :-2] # remove the last two
+        # Split the target tensor into survival status and failure times
+        survival_status = target[:, :self.n_intervals]
+        failure_times = target[:, self.n_intervals:]
 
+        # Initialize a variable to store the score
+        score = 0.0
+
+        # Iterate over each time interval
+        for t in range(self.n_intervals):
+            # Calculate the observed status for this interval
+            observed_status = survival_status[:, t]
+
+            # For those who failed, check if the failure happened at or before this interval
+            failure_at_or_before_t = tf.cast(tf.math.cumsum(failure_times, axis=1) > 0, dtype=tf.float32)[:, t]
+
+            # For those who are censored before this interval, their status should not contribute to the score
+            censored_before_t = tf.cast(tf.math.reduce_sum(failure_times, axis=1) == 0, dtype=tf.float32) \
+                                * tf.cast(tf.math.cumsum(survival_status, axis=1)[:, t] == 0, dtype=tf.float32)
+
+            # Calculate the squared difference between observed status and predictions for this interval
+            interval_score = tf.square(observed_status - prediction[:, t])
+
+            # Adjust the score for censoring
+            interval_score *= (1 - censored_before_t)
+
+            # Add the score for this interval to the total score, considering only non-censored or failure-at-or-before-t cases
+            score += tf.reduce_mean(interval_score * (failure_at_or_before_t + (1 - censored_before_t)))
+
+        return score / self.n_intervals
 
 @custom_loss
 class BinaryMacroFbetaLoss(Loss):
