@@ -47,7 +47,7 @@
                 {
                     "class_name": "MakeSurvArray",
                     "config": {
-                        "breaks": [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
+                        "breaks": [0, 6, 8, 12, 16,  20,  24,  32,  39,  42,  45,  49,  55,  59,  64, 67,  69,  76,  81,  85,  90]
                     }
                 }
             ],
@@ -66,7 +66,7 @@
         "loss": {
             "class_name": "NegativeLogLikelihood",
             "config":{
-                "n_intervals": 10
+                "n_intervals": 20
             }
         },
         "optimizer": {
@@ -130,7 +130,7 @@
                 "name": "predictions",
                 "class_name": "Dense",
                 "config": {
-                    "units": 10,
+                    "units": 20,
                     "activation": "sigmoid",
                     "kernel_initializer": {
                         "class_name": "VarianceScaling",
