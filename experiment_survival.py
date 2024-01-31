@@ -200,27 +200,27 @@ if __name__ == '__main__':
         temp_base_path=args.temp_folder
     ).from_full_config(
         args.config_file
-    ).run_experiment(
-        train_history_log=True,
-        model_checkpoint_period=20,
-        prediction_checkpoint_period=20,
-        epochs=20,
-        save_val_inputs=False,
-        class_weight=class_weight,
-    ).run_experiment(
-        train_history_log=True,
-        model_checkpoint_period=args.model_checkpoint_period,
-        prediction_checkpoint_period=args.prediction_checkpoint_period,
-        epochs=args.epochs,
-        initial_epoch=20,
-        save_val_inputs=False,
-        class_weight=class_weight,
+    # ).run_experiment(
+    #     train_history_log=True,
+    #     model_checkpoint_period=20,
+    #     prediction_checkpoint_period=20,
+    #     epochs=20,
+    #     save_val_inputs=False,
+    #     class_weight=class_weight,
+    # ).run_experiment(
+    #     train_history_log=True,
+    #     model_checkpoint_period=args.model_checkpoint_period,
+    #     prediction_checkpoint_period=args.prediction_checkpoint_period,
+    #     epochs=args.epochs,
+    #     initial_epoch=20,
+    #     save_val_inputs=False,
+    #     class_weight=class_weight,
     ).apply_post_processors(
         map_meta_data=meta,
-        metrics=['HCI', 'AUC', 'IBS'],
-        metrics_sources=['sklearn', 'sklearn', 'sklearn'],
-        process_functions=[None, None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}, {}]
+        metrics=['HCI', 'IBS'],
+        metrics_sources=['sklearn', 'sklearn'],
+        process_functions=[None, None],
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}]
     ).plot_performance().load_best_model(
         monitor=args.monitor,
         use_raw_log=False,
@@ -229,8 +229,8 @@ if __name__ == '__main__':
     ).run_test(
     ).apply_post_processors(
         map_meta_data=meta, run_test=True,
-        metrics=['HCI', 'AUC', 'IBS'],
-        metrics_sources=['sklearn', 'sklearn', 'sklearn'],
-        process_functions=[None, None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}, {}]
+        metrics=['HCI', 'IBS'],
+        metrics_sources=['sklearn', 'sklearn'],
+        process_functions=[None, None],
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}]
     )
