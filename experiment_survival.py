@@ -71,11 +71,11 @@ class AUC_scorer:
     AUC score on actual survival and predicted probability for each time interval
     """
     def __call__(self, y_true, y_pred, **kwargs):
-        true = y_true[:, :10]  # first ten items of y_true: 1 if individual survived that interval, 0 if not.
+        true = y_true[:, :20]  # first ten items of y_true: 1 if individual survived that interval, 0 if not.
         return roc_auc_score(true, y_pred)
 
     def _score_func(self, y_true, y_pred, **kwargs):
-        true = y_true[:, :10]
+        true = y_true[:, :20]
         return roc_auc_score(true, y_pred)
 
 class IBS_scorer:
@@ -88,7 +88,7 @@ class IBS_scorer:
         survival_train = np.array(list(zip(event, time)))
         dtype = [('event', bool), ('time', np.float64)]
         structured_survival_train = np.array(list(map(tuple, survival_train)), dtype=dtype)
-        times = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
+        times = [6, 8, 12, 16,  20,  24,  32,  39,  42,  45,  49,  55,  59,  64, 67,  69,  76,  81,  85,  90]
         score = integrated_brier_score(structured_survival_train, structured_survival_train, y_pred, times)
         return score
 
@@ -98,7 +98,7 @@ class IBS_scorer:
         survival_train = np.array(list(zip(event, time)))
         dtype = [('event', bool), ('time', np.float64)]
         structured_survival_train = np.array(list(map(tuple, survival_train)), dtype=dtype)
-        times = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
+        times = [6, 8, 12, 16,  20,  24,  32,  39,  42,  45,  49,  55,  59,  64, 67,  69,  76,  81,  85,  90]
         score = integrated_brier_score(structured_survival_train, structured_survival_train, y_pred, times)
         return score
 
@@ -200,21 +200,21 @@ if __name__ == '__main__':
         temp_base_path=args.temp_folder
     ).from_full_config(
         args.config_file
-    ).run_experiment(
-        train_history_log=True,
-        model_checkpoint_period=20,
-        prediction_checkpoint_period=20,
-        epochs=20,
-        save_val_inputs=False,
-        class_weight=class_weight,
-    ).run_experiment(
-        train_history_log=True,
-        model_checkpoint_period=args.model_checkpoint_period,
-        prediction_checkpoint_period=args.prediction_checkpoint_period,
-        epochs=args.epochs,
-        initial_epoch=20,
-        save_val_inputs=False,
-        class_weight=class_weight,
+    # ).run_experiment(
+    #     train_history_log=True,
+    #     model_checkpoint_period=20,
+    #     prediction_checkpoint_period=20,
+    #     epochs=20,
+    #     save_val_inputs=False,
+    #     class_weight=class_weight,
+    # ).run_experiment(
+    #     train_history_log=True,
+    #     model_checkpoint_period=args.model_checkpoint_period,
+    #     prediction_checkpoint_period=args.prediction_checkpoint_period,
+    #     epochs=args.epochs,
+    #     initial_epoch=20,
+    #     save_val_inputs=False,
+    #     class_weight=class_weight,
     ).apply_post_processors(
         map_meta_data=meta,
         metrics=['HCI', 'AUC', 'IBS'],
