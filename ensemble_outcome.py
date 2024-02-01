@@ -166,8 +166,8 @@ if __name__ == '__main__':
         pp.concat_results()
 
     pp.calculate_metrics(
-        metrics=['HCI', 'HCI_1yr', 'AUC', 'IBS'],
-        metrics_sources=['sklearn', 'sklearn','sklearn', 'sklearn'],
-        process_functions=[None, None, None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {'metric_name': 'HCI_1yr'}, {}, {}]
+        metrics=['HCI'],
+        metrics_sources=['sklearn'],
+        process_functions=[None],
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}]
     )
