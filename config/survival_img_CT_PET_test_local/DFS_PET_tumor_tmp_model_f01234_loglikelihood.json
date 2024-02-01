@@ -24,13 +24,20 @@
                 {
                     "class_name": "CropImage",
                     "config": {
-                        "size": [64, 64, 64]
+                        "size": [
+                            64,
+                            64,
+                            64
+                        ]
                     }
                 },
                 {
                     "class_name": "ChannelSelector",
                     "config": {
-                        "channel": [1, 2]
+                        "channel": [
+                            1,
+                            2
+                        ]
                     }
                 },
                 {
@@ -47,7 +54,29 @@
                 {
                     "class_name": "MakeSurvArray",
                     "config": {
-                        "breaks": [0, 6, 8, 12, 16,  20,  24,  32,  39,  42,  45,  49,  55,  59,  64, 67,  69,  76,  81,  85,  90]
+                        "breaks": [
+                            0,
+                            6,
+                            8,
+                            12,
+                            16,
+                            20,
+                            24,
+                            32,
+                            39,
+                            42,
+                            45,
+                            49,
+                            55,
+                            59,
+                            64,
+                            67,
+                            69,
+                            76,
+                            81,
+                            85,
+                            90
+                        ]
                     }
                 }
             ],
@@ -65,7 +94,7 @@
     "model_params": {
         "loss": {
             "class_name": "NegativeLogLikelihood",
-            "config":{
+            "config": {
                 "n_intervals": 20
             }
         },
@@ -75,8 +104,7 @@
                 "learning_rate": 0.0001
             }
         },
-        "metrics": [
-        ]
+        "metrics": []
     },
     "architecture": {
         "type": "Generic",
