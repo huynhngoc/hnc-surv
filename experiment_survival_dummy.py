@@ -151,10 +151,10 @@ if __name__ == '__main__':
         class_weight=class_weight,
     ).apply_post_processors(
         map_meta_data=meta,
-        metrics=['CI'],
-        metrics_sources=['sklearn'],
-        process_functions=[None],
-        metrics_kwargs=[{}]
+        metrics=['HCI', 'AUC', 'IBS'],
+        metrics_sources=['sklearn', 'sklearn', 'sklearn'],
+        process_functions=[None, None, None],
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}, {}]
     ).plot_performance().load_best_model(
         monitor=args.monitor,
         use_raw_log=False,
@@ -163,8 +163,8 @@ if __name__ == '__main__':
     ).run_test(
     ).apply_post_processors(
         map_meta_data=meta, run_test=True,
-        metrics=['CI'],
-        metrics_sources=['sklearn'],
-        process_functions=[None],
-        metrics_kwargs=[{}]
+        metrics=['HCI', 'AUC', 'IBS'],
+        metrics_sources=['sklearn', 'sklearn', 'sklearn'],
+        process_functions=[None, None, None],
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}, {}]
     )
