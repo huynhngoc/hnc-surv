@@ -1,0 +1,208 @@
+{
+    "train_params": {
+        "epochs": 20
+    },
+    "dataset_params": {
+        "class_name": "H5Reader",
+        "config": {
+            "filename": "C:/Users/Windows User/Documents/UNI/M30-DV/HNC dataset/outcome_ous.h5",
+            "batch_size": 2,
+            "x_name": "image",
+            "y_name": "OS_surv",
+            "batch_cache": 4,
+            "shuffle": true,
+            "train_folds": [
+                0
+            ],
+            "val_folds": [
+                3
+            ],
+            "test_folds": [
+                4
+            ],
+            "preprocessors": [
+                {
+                    "class_name": "CropImage",
+                    "config": {
+                        "size": [
+                            64,
+                            64,
+                            64
+                        ]
+                    }
+                },
+                {
+                    "class_name": "ChannelSelector",
+                    "config": {
+                        "channel": [
+                            1,
+                            2,
+                            3
+                        ]
+                    }
+                },
+                {
+                    "class_name": "ImageNormalizerPreprocessor",
+                    "config": {
+                        "vmin": [
+                            0
+                        ],
+                        "vmax": [
+                            25
+                        ]
+                    }
+                },
+                {
+                    "class_name": "MakeSurvArray",
+                    "config": {
+                        "breaks": [
+                            0,
+                            6,
+                            8,
+                            12,
+                            16,
+                            20,
+                            24,
+                            32,
+                            39,
+                            42,
+                            45,
+                            49,
+                            55,
+                            59,
+                            64,
+                            67,
+                            69,
+                            76,
+                            81,
+                            85,
+                            90
+                        ]
+                    }
+                }
+            ],
+            "augmentations": []
+        }
+    },
+    "input_params": {
+        "shape": [
+            64,
+            64,
+            64,
+            3
+        ]
+    },
+    "model_params": {
+        "loss": {
+            "class_name": "NegativeLogLikelihood",
+            "config": {
+                "n_intervals": 20
+            }
+        },
+        "optimizer": {
+            "class_name": "adam",
+            "config": {
+                "learning_rate": 0.0001
+            }
+        },
+        "metrics": []
+    },
+    "architecture": {
+        "type": "Generic",
+        "layers": [
+            {
+                "name": "PET_tumor",
+                "class_name": "DepthwiseMultiply",
+                "config": {
+                    "channels": [
+                        0,
+                        1
+                    ]
+                },
+                "inputs": [
+                    "input_0"
+                ]
+            },
+            {
+                "name": "PET_node",
+                "class_name": "DepthwiseMultiply",
+                "config": {
+                    "channels": [
+                        0,
+                        2
+                    ]
+                },
+                "inputs": [
+                    "input_0"
+                ]
+            },
+            {
+                "name": "stem_conv",
+                "class_name": "Conv3D",
+                "config": {
+                    "filters": 16,
+                    "kernel_size": 3,
+                    "strides": 2,
+                    "kernel_initializer": {
+                        "class_name": "VarianceScaling",
+                        "config": {
+                            "scale": 2.0,
+                            "mode": "fan_out",
+                            "distribution": "truncated_normal"
+                        }
+                    },
+                    "padding": "same",
+                    "use_bias": false
+                },
+                "inputs": [
+                    "input_0",
+                    "PET_tumor",
+                    "PET_node"
+                ]
+            },
+            {
+                "name": "stem_bn",
+                "class_name": "BatchNormalization",
+                "config": {
+                    "axis": 4,
+                    "momentum": 0.9
+                }
+            },
+            {
+                "name": "stem_activation",
+                "class_name": "Activation",
+                "config": {
+                    "activation": "swish"
+                }
+            },
+            {
+                "name": "avg_pool",
+                "class_name": "GlobalAveragePooling3D"
+            },
+            {
+                "name": "top_dropout",
+                "class_name": "Dropout",
+                "config": {
+                    "rate": 0.2
+                }
+            },
+            {
+                "name": "predictions",
+                "class_name": "Dense",
+                "config": {
+                    "units": 20,
+                    "activation": "sigmoid",
+                    "kernel_initializer": {
+                        "class_name": "VarianceScaling",
+                        "config": {
+                            "scale": 0.3333333333333333,
+                            "mode": "fan_out",
+                            "distribution": "uniform"
+                        }
+                    },
+                    "bias_initializer": "Constant"
+                }
+            }
+        ]
+    }
+}
