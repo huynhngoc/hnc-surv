@@ -173,10 +173,11 @@ if __name__ == '__main__':
             # Virtual devices must be set before GPUs have been initialized
             print(e)
 
-    if '2d' in args.log_folder:
-        meta = args.meta
-    else:
-        meta = args.meta.split(',')[0]
+    # if '2d' in args.log_folder:
+    #     meta = args.meta
+    # else:
+    #     meta = args.meta.split(',')[0]
+    meta = args.meta
 
     def binarize(targets, predictions):
         return targets, (predictions > 0.5).astype(targets.dtype)
@@ -203,7 +204,7 @@ if __name__ == '__main__':
                 monitor=args.monitor,
                 use_raw_log=False,
                 mode=args.monitor_mode,
-                custom_modifier_fn=metric_avg_score
+                # custom_modifier_fn=metric_avg_score
             )
         except Exception as e:
             print("Error while loading best model", e)
