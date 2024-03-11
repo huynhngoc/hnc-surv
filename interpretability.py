@@ -144,6 +144,7 @@ if __name__ == '__main__':
     tf_dtype = model.inputs[0].dtype
     print('TF dtype', tf_dtype)
     data_gen = test_gen.generate()
+    sub_idx = 0
     i = 0
     for x, _ in data_gen:
         print(f'Batch {i+1}/{steps_per_epoch}')
@@ -164,8 +165,9 @@ if __name__ == '__main__':
 
         final_var_grad = var_grad.var(axis=-1)
         with h5py.File(args.log_folder + '/ous_test.h5', 'a') as f:
-            for sub_idx, pid in enumerate(pids[i*batch_size: (i+1)*batch_size]):
-                f.create_dataset(str(pid), data=final_var_grad[sub_idx])
+            for b_idx, pid in enumerate(pids[sub_idx: sub_idx + x.shape[0]]):
+                f.create_dataset(str(pid), data=final_var_grad[b_idx])
+        sub_idx += x.shape[0]
         i += 1
         gc.collect()
         if i == steps_per_epoch:
@@ -192,6 +194,7 @@ if __name__ == '__main__':
         print('created file', args.log_folder + '/maastro.h5')
     data_gen = test_gen.generate()
     i = 0
+    sub_idx = 0
     for x, _ in data_gen:
         print(f'Batch {i}/{steps_per_epoch}')
         np_random_gen = np.random.default_rng(1123)
@@ -212,9 +215,9 @@ if __name__ == '__main__':
 
         final_var_grad = var_grad.var(axis=-1)
         with h5py.File(args.log_folder + '/maastro.h5', 'a') as f:
-            for sub_idx, pid in enumerate(pids[i*batch_size: (i+1)*batch_size]):
-                f.create_dataset(str(pid), data=final_var_grad[sub_idx])
-
+            for b_idx, pid in enumerate(pids[sub_idx: sub_idx + x.shape[0]]):
+                f.create_dataset(str(pid), data=final_var_grad[b_idx])
+        sub_idx += x.shape[0]
         i += 1
         gc.collect()
         if i == steps_per_epoch:
