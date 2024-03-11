@@ -26,6 +26,7 @@ from sksurv.metrics import concordance_index_censored, integrated_brier_score
 from lifelines.utils import concordance_index
 from sklearn.metrics import roc_curve, auc, roc_auc_score
 
+
 class Matthews_corrcoef_scorer:
     def __call__(self, *args, **kwargs):
         return matthews_corrcoef(*args, **kwargs)
@@ -33,14 +34,18 @@ class Matthews_corrcoef_scorer:
     def _score_func(self, *args, **kwargs):
         return matthews_corrcoef(*args, **kwargs)
 
+
 class CI_scorer:
     def __call__(self, *args, **kwargs):
-        ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 1].flatten(), **kwargs)
+        ci, *others = concordance_index_censored(
+            args[0][..., 0] > 0, args[0][..., 1], args[1][..., 1].flatten(), **kwargs)
         return ci
 
     def _score_func(self, *args, **kwargs):
-        ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 0].flatten(), **kwargs)
+        ci, *others = concordance_index_censored(
+            args[0][..., 0] > 0, args[0][..., 1], args[1][..., 0].flatten(), **kwargs)
         return ci
+
 
 class HCI_scorer:
     def __init__(self, num_year=5):
@@ -52,16 +57,18 @@ class HCI_scorer:
         time = y_true[:, -1]
         no_time_interval = y_pred.shape[-1]
         breaks = np.arange(0, 61, 60//(no_time_interval))
-        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=self.num_year*12)[0][0]], axis=1)[:,-1]
+        predicted_score = np.cumprod(y_pred[:, 0: np.where(
+            breaks >= self.num_year*12)[0][0]], axis=1)[:, -1]
         return concordance_index(time, predicted_score, event)
 
     def _score_func(self, y_true, y_pred, **kwargs):
-        #ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 0].flatten(), **kwargs)
+        # ci, *others = concordance_index_censored(args[0][..., 0] > 0, args[0][..., 1], args[1][..., 0].flatten(), **kwargs)
         event = y_true[:, -2]
         time = y_true[:, -1]
         no_time_interval = y_pred.shape[-1]
         breaks = np.arange(0, 61, 60//(no_time_interval))
-        predicted_score = np.cumprod(y_pred[:,0: np.where(breaks>=self.num_year*12)[0][0]], axis=1)[:,-1]
+        predicted_score = np.cumprod(y_pred[:, 0: np.where(
+            breaks >= self.num_year*12)[0][0]], axis=1)[:, -1]
         return concordance_index(time, predicted_score, event)
 
 
@@ -69,8 +76,10 @@ class AUC_scorer:
     """
     AUC score on actual survival and predicted probability for each time interval
     """
+
     def __call__(self, y_true, y_pred, **kwargs):
-        true = y_true[:, :10]  # first ten items of y_true: 1 if individual survived that interval, 0 if not.
+        # first ten items of y_true: 1 if individual survived that interval, 0 if not.
+        true = y_true[:, :10]
         return roc_auc_score(true, y_pred)
 
     def _score_func(self, y_true, y_pred, **kwargs):
@@ -78,18 +87,22 @@ class AUC_scorer:
         score = roc_auc_score(true, y_pred)
         return roc_auc_score(true, y_pred)
 
-class IBS_scorer:
+
+class IBS_scorer_old:
     """
     Integrated Brier Score on actual survival and predicted probability over all time intervals
     """
+
     def __call__(self, y_true, y_pred, **kwargs):
         event = y_true[:, -2]
         time = y_true[:, -1]
         survival_train = np.array(list(zip(event, time)))
         dtype = [('event', bool), ('time', np.float64)]
-        structured_survival_train = np.array(list(map(tuple, survival_train)), dtype=dtype)
+        structured_survival_train = np.array(
+            list(map(tuple, survival_train)), dtype=dtype)
         times = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
-        score = integrated_brier_score(structured_survival_train, structured_survival_train, y_pred, times)
+        score = integrated_brier_score(
+            structured_survival_train, structured_survival_train, y_pred, times)
         return score
 
     def _score_func(self, y_true, y_pred, **kwargs):
@@ -97,9 +110,41 @@ class IBS_scorer:
         time = y_true[:, -1]
         survival_train = np.array(list(zip(event, time)))
         dtype = [('event', bool), ('time', np.float64)]
-        structured_survival_train = np.array(list(map(tuple, survival_train)), dtype=dtype)
+        structured_survival_train = np.array(
+            list(map(tuple, survival_train)), dtype=dtype)
         times = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
-        score = integrated_brier_score(structured_survival_train, structured_survival_train, y_pred, times)
+        score = integrated_brier_score(
+            structured_survival_train, structured_survival_train, y_pred, times)
+        return score
+
+
+class IBS_scorer:
+    """
+    Integrated Brier Score on actual survival and predicted probability over all time intervals
+    """
+
+    def __call__(self, y_true, y_pred, **kwargs):
+        event = y_true[:, -2]
+        time = y_true[:, -1]
+        survival_train = np.array(list(zip(event, time)))
+        dtype = [('event', bool), ('time', np.float64)]
+        structured_survival_train = np.array(
+            list(map(tuple, survival_train)), dtype=dtype)
+        times = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
+        score = integrated_brier_score(
+            structured_survival_train, structured_survival_train, np.cumprod(y_pred), times)
+        return score
+
+    def _score_func(self, y_true, y_pred, **kwargs):
+        event = y_true[:, -2]
+        time = y_true[:, -1]
+        survival_train = np.array(list(zip(event, time)))
+        dtype = [('event', bool), ('time', np.float64)]
+        structured_survival_train = np.array(
+            list(map(tuple, survival_train)), dtype=dtype)
+        times = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
+        score = integrated_brier_score(
+            structured_survival_train, structured_survival_train, np.cumprod(y_pred), times)
         return score
 
 
@@ -109,7 +154,8 @@ try:
     metrics.SCORERS['HCI'] = HCI_scorer()
     metrics.SCORERS['HCI_1yr'] = HCI_scorer(num_year=1)
     metrics.SCORERS['AUC'] = AUC_scorer()
-    metrics.SCORERS['IBS'] = IBS_scorer()
+    metrics.SCORERS['IBS'] = IBS_scorer_old()
+    metrics.SCORERS['IBS_fixed'] = IBS_scorer()
 except:
     pass
 try:
@@ -118,7 +164,8 @@ try:
     metrics._scorer._SCORERS['HCI'] = HCI_scorer()
     metrics._scorer._SCORERS['HCI_1yr'] = HCI_scorer(num_year=1)
     metrics._scorer._SCORERS['AUC'] = AUC_scorer()
-    metrics._scorer._SCORERS['IBS'] = IBS_scorer()
+    metrics.SCORERS['IBS'] = IBS_scorer_old()
+    metrics.SCORERS['IBS_fixed'] = IBS_scorer()
 except:
     pass
 
@@ -166,8 +213,8 @@ if __name__ == '__main__':
         pp.concat_results()
 
     pp.calculate_metrics(
-        metrics=['HCI', 'AUC', 'IBS'],
-        metrics_sources=['sklearn', 'sklearn', 'sklearn'],
-        process_functions=[None, None, None],
-        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}, {}]
+        metrics=['HCI', 'AUC', 'IBS', 'IBS_fixed'],
+        metrics_sources=['sklearn', 'sklearn', 'sklearn', 'sklearn'],
+        process_functions=[None, None, None, None],
+        metrics_kwargs=[{'metric_name': 'HCI_5yr'}, {}, {}, {}]
     )
