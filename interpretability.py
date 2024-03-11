@@ -153,7 +153,7 @@ if __name__ == '__main__':
         for trial in range(20):
             print(f'Trial {trial+1}/20')
             x_noised = x + \
-                np_random_gen.normal(loc=0.0, scale=.2, size=x.shape)
+                np_random_gen.normal(loc=0.0, scale=.05, size=x.shape)
             x_noised = tf.Variable(x_noised, dtype=tf_dtype)
             with tf.GradientTape() as tape:
                 tape.watch(x_noised)
@@ -200,7 +200,7 @@ if __name__ == '__main__':
         for trial in range(20):
             print(f'Trial {trial}')
             x_noised = x + \
-                np_random_gen.normal(loc=0.0, scale=.2, size=x.shape)
+                np_random_gen.normal(loc=0.0, scale=.05, size=x.shape)
             x_noised = tf.Variable(x_noised)
             with tf.GradientTape() as tape:
                 tape.watch(x_noised)
