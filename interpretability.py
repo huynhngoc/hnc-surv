@@ -161,10 +161,10 @@ if __name__ == '__main__':
             grads = tape.gradient(pred, x_noised).numpy()
             var_grad[..., trial] = grads
 
-        final_var_grad = var_grad.std(axis=-1)**2
+        final_var_grad = var_grad.var(axis=-1)
         with h5py.File(args.log_folder + '/ous_test.h5', 'a') as f:
             for sub_idx, pid in enumerate(pids[i*batch_size: (i+1)*batch_size]):
-                f.create_dataset(pid, data=final_var_grad[sub_idx])
+                f.create_dataset(str(pid), data=final_var_grad[sub_idx])
         i += 1
         gc.collect()
         if i == steps_per_epoch:
@@ -208,10 +208,10 @@ if __name__ == '__main__':
             grads = tape.gradient(pred, x_noised).numpy()
             var_grad[..., trial] = grads
 
-        final_var_grad = var_grad.std(axis=-1)**2
+        final_var_grad = var_grad.var(axis=-1)
         with h5py.File(args.log_folder + '/maastro.h5', 'a') as f:
             for sub_idx, pid in enumerate(pids[i*batch_size: (i+1)*batch_size]):
-                f.create_dataset(pid, data=final_var_grad[sub_idx])
+                f.create_dataset(str(pid), data=final_var_grad[sub_idx])
 
         i += 1
         gc.collect()
