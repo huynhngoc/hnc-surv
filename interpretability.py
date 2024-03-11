@@ -157,7 +157,7 @@ if __name__ == '__main__':
             x_noised = tf.Variable(x_noised, dtype=tf_dtype)
             with tf.GradientTape() as tape:
                 tape.watch(x_noised)
-                pred = -tf.math.reduce_prod(model(x_noised), axis=-1)
+                pred = 1 - model(x_noised).cumprod(axis=-1).sum()
             grads = tape.gradient(pred, x_noised).numpy()
             var_grad[..., trial] = grads
 
@@ -203,7 +203,7 @@ if __name__ == '__main__':
             x_noised = tf.Variable(x_noised)
             with tf.GradientTape() as tape:
                 tape.watch(x_noised)
-                pred = model(x_noised)
+                pred = 1 - model(x_noised).cumprod(axis=-1).sum()
 
             grads = tape.gradient(pred, x_noised).numpy()
             var_grad[..., trial] = grads
