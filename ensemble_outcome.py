@@ -132,7 +132,7 @@ class IBS_scorer:
             list(map(tuple, survival_train)), dtype=dtype)
         times = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
         score = integrated_brier_score(
-            structured_survival_train, structured_survival_train, np.cumprod(y_pred), times)
+            structured_survival_train, structured_survival_train, np.cumprod(y_pred, axis=-1), times)
         return score
 
     def _score_func(self, y_true, y_pred, **kwargs):
@@ -144,7 +144,7 @@ class IBS_scorer:
             list(map(tuple, survival_train)), dtype=dtype)
         times = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
         score = integrated_brier_score(
-            structured_survival_train, structured_survival_train, np.cumprod(y_pred), times)
+            structured_survival_train, structured_survival_train, np.cumprod(y_pred, axis=-1), times)
         return score
 
 
@@ -164,8 +164,8 @@ try:
     metrics._scorer._SCORERS['HCI'] = HCI_scorer()
     metrics._scorer._SCORERS['HCI_1yr'] = HCI_scorer(num_year=1)
     metrics._scorer._SCORERS['AUC'] = AUC_scorer()
-    metrics.SCORERS['IBS'] = IBS_scorer_old()
-    metrics.SCORERS['IBS_fixed'] = IBS_scorer()
+    metrics._scorer._SCORERS['IBS'] = IBS_scorer_old()
+    metrics._scorer._SCORERS['IBS_fixed'] = IBS_scorer()
 except:
     pass
 
