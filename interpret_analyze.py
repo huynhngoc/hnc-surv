@@ -21,8 +21,8 @@ def avg_filter_per_channel(data):
     ]).mean(axis=0)
 
 def avg_filter(data):
-    if len(data.shape==4) and data.shape[-1] > 1:
-        data = np.stack([avg_filter_per_channel(data[..., i]) for i in range(data.shape[-1])], axis=3)
+    if len(data.shape)==4 and data.shape[-1] > 1:
+        return np.stack([avg_filter_per_channel(data[..., i]) for i in range(data.shape[-1])], axis=3)
     else:
         return avg_filter_per_channel(data)
 
@@ -390,6 +390,7 @@ if __name__ == '__main__':
 
         print('Smoothening interpret results one more time...')
         smoothen_data = avg_filter(smoothen_data)
+        print('Output shape:', smoothen_data.shape)
 
         # normalize original data
         s_d_min = smoothen_data.min()
