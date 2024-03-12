@@ -1,11 +1,12 @@
 #!/bin/bash
 #SBATCH --ntasks=1               # 1 core(CPU)
 #SBATCH --nodes=1                # Use 1 node
-#SBATCH --job-name=interpret   # sensible name for the job
+#SBATCH --job-name=interpret_analyze   # sensible name for the job
 #SBATCH --mem=12G                 # Default memory per CPU is 3GB.
 #SBATCH --partition=smallmem,hugemem,orion,hugemem-avx2 # Use the verysmallmem-partition for jobs requiring < 10 GB RAM.
 #SBATCH --mail-user=ngochuyn@nmbu.no # Email me when job is done.
 #SBATCH --mail-type=FAIL
+#SBATCH --exclude=cn-11,cn-12,cn-14
 #SBATCH --output=outputs/interpret-analyze-%A-%a.out
 #SBATCH --error=outputs/interpret-analyze-%A-%a.out
 
