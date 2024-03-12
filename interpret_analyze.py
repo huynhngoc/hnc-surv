@@ -22,7 +22,7 @@ def avg_filter_per_channel(data):
 
 def avg_filter(data):
     if len(data.shape==4) and data.shape[-1] > 1:
-        data = np.stack([data[..., i] for i in range(data.shape[-1])], axis=3)
+        data = np.stack([avg_filter_per_channel(data[..., i]) for i in range(data.shape[-1])], axis=3)
     else:
         return avg_filter_per_channel(data)
 
