@@ -4,7 +4,7 @@ import argparse
 import pandas as pd
 
 
-def avg_filter(data):
+def avg_filter_per_channel(data):
     return np.concatenate([
         [data],  # (0,0,0)
         [np.roll(data, 1, axis=i) for i in range(3)],  # (one 1)
@@ -19,6 +19,12 @@ def avg_filter(data):
             1, -1]
          ]
     ]).mean(axis=0)
+
+def avg_filter(data):
+    if len(data.shape==4) and data.shape[-1] > 1:
+        data = np.stack([data[..., i] for i in range(data.shape[-1])], axis=3)
+    else:
+        return avg_filter_per_channel(data)
 
 
 def edge_detection(data):
