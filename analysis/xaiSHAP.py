@@ -7,9 +7,9 @@ import shap
 import matplotlib.pyplot as plt
 
 
-model_path = 'C:/Users/Windows User/Documents/UNI/M30-DV/ulrik/stuk/model.055.h5'
+model_path = '/ulrik/stuk/model.055.h5'
 model_test = 'C:/Users/Windows User/Documents/UNI/M30-DV/surv_perf/model/model.002.h5'
-data_path = 'C:/Users/Windows User/Documents/UNI/M30-DV/HNC dataset/outcome_ous.h5'
+data_path = '/HNC dataset/outcome_ous.h5'
 
 model = load_model(model_test).model
 
