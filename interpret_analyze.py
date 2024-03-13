@@ -187,6 +187,28 @@ def get_info(data_normalized, ct_img, pt_img, tumor, node):
                   'suv_6_8', 'suv_8_10', 'suv_10_over']
     suv_info = get_histogram_info(data_normalized[..., 1], areas, area_names)
 
+    # histogram data CT
+    hu_zero = (ct_img < 0.08).astype(int)
+    hu_0_16 = (ct_img <= 0.16).astype(int) - (ct_img < 0.08).astype(int)
+    hu_16_32 = (ct_img <= 0.24).astype(int) - (ct_img <= 0.16).astype(int)
+    hu_32_64 = (ct_img <= 0.32).astype(int) - (ct_img <= 0.24).astype(int)
+    hu_64_80 = (ct_img <= 0.4).astype(int) - (ct_img <= 0.32).astype(int)
+    hu_80_96 = (ct_img <= 0.48).astype(int) - (ct_img <= 0.4).astype(int)
+    hu_96_112 = (ct_img <= 0.56).astype(int) - (ct_img <= 0.48).astype(int)
+    hu_112_128 = (ct_img <= 0.64).astype(int) - (ct_img <= 0.56).astype(int)
+    hu_128_144 = (ct_img <= 0.72).astype(int) - (ct_img <= 0.64).astype(int)
+    hu_144_160 = (ct_img <= 0.8).astype(int) - (ct_img <= 0.72).astype(int)
+    hu_160_176 = (ct_img <= 0.88).astype(int) - (ct_img <= 0.8).astype(int)
+    hu_176_over = (ct_img > 0.88).astype(int)
+
+    areas = [hu_zero, hu_0_16, hu_16_32, hu_16_32, hu_32_64,
+             hu_64_80, hu_80_96, hu_96_112, hu_112_128,
+             hu_128_144, hu_144_160, hu_160_176, hu_176_over]
+    area_names = ['hu_zero', 'hu_0_16', 'hu_16_32', 'hu_16_32', 'hu_32_64',
+                  'hu_64_80', 'hu_80_96', 'hu_96_112', 'hu_112_128',
+                  'hu_128_144', 'hu_144_160', 'hu_160_176', 'hu_176_over']
+    hu_info = get_histogram_info(data_normalized[..., 0], areas, area_names)
+
     all_info = {
         **overall_info,
         **tumor_info,
@@ -194,7 +216,8 @@ def get_info(data_normalized, ct_img, pt_img, tumor, node):
         **normal_voxel_info,
         'hu_corr': hu_corr,
         'suv_corr': suv_corr,
-        **suv_info
+        **suv_info,
+        **hu_info
     }
 
     return all_info
@@ -272,6 +295,31 @@ if __name__ == '__main__':
                  suv_6_8, suv_8_10, suv_10_over]
         area_names = ['all_suv_zeros', 'all_suv_0_2', 'all_suv_2_4', 'all_suv_4_6',
                       'all_suv_6_8', 'all_suv_8_10', 'all_suv_10_over']
+
+        # histogram data CT
+        hu_zero = (ct_img < 0.04).astype(int)
+        hu_0_16 = (ct_img <= 0.12).astype(int) - (ct_img < 0.04).astype(int)
+        hu_16_32 = (ct_img <= 0.2).astype(int) - (ct_img <= 0.12).astype(int)
+        hu_32_48 = (ct_img <= 0.28).astype(int) - (ct_img <= 0.2).astype(int)
+        hu_48_64 = (ct_img <= 0.36).astype(int) - (ct_img <= 0.28).astype(int)
+        hu_64_80 = (ct_img <= 0.44).astype(int) - (ct_img <= 0.36).astype(int)
+        hu_80_96 = (ct_img <= 0.52).astype(int) - (ct_img <= 0.44).astype(int)
+        hu_96_112 = (ct_img <= 0.6).astype(int) - (ct_img <= 0.52).astype(int)
+        hu_112_128 = (ct_img <= 0.68).astype(
+            int) - (ct_img <= 0.6).astype(int)
+        hu_128_144 = (ct_img <= 0.76).astype(
+            int) - (ct_img <= 0.68).astype(int)
+        hu_144_160 = (ct_img <= 0.84).astype(int) - (ct_img <= 0.76).astype(int)
+        hu_160_176 = (ct_img <= 0.92).astype(int) - (ct_img <= 0.84).astype(int)
+        hu_176_over = (ct_img > 0.92).astype(int)
+
+        hu_areas = [hu_zero, hu_0_16, hu_16_32, hu_16_32, hu_32_48, hu_48_64,
+                    hu_64_80, hu_80_96, hu_96_112, hu_112_128,
+                    hu_128_144, hu_144_160, hu_160_176, hu_176_over]
+        hu_area_names = ['all_hu_zero', 'all_hu_0_16', 'all_hu_16_32', 'all_hu_32_48', 'all_hu_48_64',
+                         'all_hu_64_80', 'all_hu_80_96', 'all_hu_96_112', 'all_hu_112_128',
+                         'all_hu_128_144', 'all_hu_144_160', 'all_hu_160_176', 'all_hu_176_over']
+
 
         print('Getting interpret resutls...')
         with h5py.File(args.log_folder + '/' + h5_file, 'r') as f:
@@ -425,6 +473,7 @@ if __name__ == '__main__':
             **get_area_info(s_d_norm, node, 'node_all'),
             **get_area_info(s_d_norm, 1 - tumor - node, 'outside_all'),
             **get_histogram_info(s_d_norm[..., 1], areas, area_names)
+            **get_histogram_info(s_d_norm[..., 0], hu_areas, hu_area_names)
         }
 
         smooth_info = []
