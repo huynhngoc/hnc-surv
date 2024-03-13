@@ -291,10 +291,10 @@ if __name__ == '__main__':
         suv_8_10 = (pt_img <= 0.4).astype(int) - (pt_img <= 0.32).astype(int)
         suv_10_over = (pt_img > 0.4).astype(int)
 
-        areas = [suv_zero, suv_0_2, suv_2_4, suv_4_6,
-                 suv_6_8, suv_8_10, suv_10_over]
-        area_names = ['all_suv_zeros', 'all_suv_0_2', 'all_suv_2_4', 'all_suv_4_6',
-                      'all_suv_6_8', 'all_suv_8_10', 'all_suv_10_over']
+        suv_areas = [suv_zero, suv_0_2, suv_2_4, suv_4_6,
+                     suv_6_8, suv_8_10, suv_10_over]
+        suv_area_names = ['all_suv_zeros', 'all_suv_0_2', 'all_suv_2_4', 'all_suv_4_6',
+                          'all_suv_6_8', 'all_suv_8_10', 'all_suv_10_over']
 
         # histogram data CT
         hu_zero = (ct_img < 0.04).astype(int)
@@ -355,7 +355,8 @@ if __name__ == '__main__':
         #     'node_size': (node > 0).sum(),
         #     **get_area_info(d_norm, node, 'node_all'),
         #     **get_area_info(d_norm, 1 - tumor - node, 'outside_all'),
-        #     **get_histogram_info(d_norm[..., 1], areas, area_names)
+        #     **get_histogram_info(d_norm[..., 1], suv_areas, suv_area_names),
+        #     **get_histogram_info(d_norm[..., 0], hu_areas, hu_area_names)
         # }
 
         # raw_info = []
@@ -412,7 +413,8 @@ if __name__ == '__main__':
         #     'node_size': (node > 0).sum(),
         #     **get_area_info(s_d_norm, node, 'node_all'),
         #     **get_area_info(s_d_norm, 1 - tumor - node, 'outside_all'),
-        #     **get_histogram_info(s_d_norm[..., 1], areas, area_names)
+        #     **get_histogram_info(s_d_norm[..., 1], suv_areas, suv_area_names),
+        #     **get_histogram_info(s_d_norm[..., 0], hu_areas, hu_area_names)
         # }
 
         # smooth_info = []
@@ -472,7 +474,7 @@ if __name__ == '__main__':
             'node_size': (node > 0).sum(),
             **get_area_info(s_d_norm, node, 'node_all'),
             **get_area_info(s_d_norm, 1 - tumor - node, 'outside_all'),
-            **get_histogram_info(s_d_norm[..., 1], areas, area_names)
+            **get_histogram_info(s_d_norm[..., 1], suv_areas, suv_area_names),
             **get_histogram_info(s_d_norm[..., 0], hu_areas, hu_area_names)
         }
 
