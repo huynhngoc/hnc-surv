@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('../')
 import customize_obj
+from deoxys.data.preprocessor import HounsfieldWindowingPreprocessor, ImageNormalizerPreprocessor
 
 
 model_path = '/mnt/project/ngoc/hn_surv/perf/OS_PET_loglikelihood_f01234/model/model.032.h5'
@@ -38,6 +39,17 @@ print(f"Slices with tumor: {slices_with_ones}")
 images_with_three_channels = images[:, :, :, :, :3]
 input_data = images_with_three_channels[sample_index][np.newaxis, :]
 
+# based on the image config
+preprocessors = [HounsfieldWindowingPreprocessor(window_center=70, window_width=200, channel=0),
+      ImageNormalizerPreprocessor(vmin=[-100, 0], vmax=[100, 25])]
+
+
+def preprocess_image(images):
+    new_images = np.array(images)
+    for pp in preprocessors:
+        new_images, _ = pp.transform(new_images, None)
+    return new_images
+
 # {
 #     "class_name": "HounsfieldWindowingPreprocessor",
 #     "config": {
@@ -61,7 +73,7 @@ input_data = images_with_three_channels[sample_index][np.newaxis, :]
 
 
 # give all fold 4 samples as background set
-explainer = shap.GradientExplainer(model, images_with_three_channels[:10], batch_size=5)
+explainer = shap.GradientExplainer(model, preprocess_image(images_with_three_channels[:10]), batch_size=5)
 
 shap_values = np.array(explainer.shap_values(input_data, nsamples=1))
 
