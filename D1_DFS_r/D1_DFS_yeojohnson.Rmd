@@ -1,0 +1,282 @@
+```{r}
+library(caTools)
+library(plsRcox)
+library(dplyr)
+library(caret)
+library(car)
+```
+
+```{r}
+### OUS 
+ous <- merge(OUS_D1, response_ous, by="patient_id", all=FALSE)
+
+# Drop patient_id column 
+ous <- ous[, -which(names(ous) == "patient_id")]
+
+# Drop other columns 
+ous <- ous %>%
+  select(-LRC, -OS, -event_LRC, -event_OS)
+```
+ 
+```{r}
+### MAASTRO 
+maastro <- merge(MAASTRO_D1, maastro_response_full, by="patient_id", all=FALSE)
+
+# Drop patient_id column 
+maastro <- maastro[, -which(names(maastro) == "patient_id")]
+
+# Drop other columns 
+maastro <- maastro %>%
+  select(-LRC, -OS, -LRC_event, -OS_event)
+```
+
+```{r}
+X <- ous[, !names(ous) %in% c("DFS", "event_DFS")]
+y <- ous[, c("DFS", "event_DFS")]
+```
+
+```{r}
+set.seed(123)
+
+# Initialize a list to store the results
+results_list <- vector("list", length = 20)
+
+# Repeat the process 20 times
+for (i in 1:20) {
+  # Create train and test indices
+  trainIndex <- createDataPartition(ous$event_DFS, p = 0.8, list = FALSE, times = 1)
+  X_train <- X[trainIndex, ]
+  
+  excluded_columns <- c('female', 
+                        'cavum_oris',
+                        'oropharynx',
+                        'hypopharynx',
+                        'larynx',
+                        'histgrade_high',
+                        'hpv_related',
+                        'charlson',
+                        'uicc8_III-IV') 
+
+  # Identify numerical columns
+  numerical_columns <- setdiff(names(X_train), excluded_columns)
+  
+  # Apply Yeo-Johnson transformation
+  preproc <- preProcess(X_train[, numerical_columns], method = c("YeoJohnson"))
+  X_train_yeojohnson <- predict(preproc, X_train[, numerical_columns])
+
+  X_train_scaled <- cbind(X_train[, excluded_columns], X_train_yeojohnson)
+  
+  # Define the PLSR model with nt components
+  result <- plsRcox(X_train_scaled, time = y$DFS[trainIndex], event = y$event_DFS[trainIndex], nt = 10)
+  
+  coefficients_df <- as.data.frame(result$Coeffs)
+  # Add feature names as a new column
+  coefficients_df$feature <- rownames(coefficients_df)
+  
+  # Add an additional column for absolute values of coefficients
+  coefficients_df$absolute_value <- abs(coefficients_df$`V1`)
+  
+  # Sort the data frame based on the absolute values of the coefficients
+  sorted_coefficients_df <- coefficients_df[order(-coefficients_df$absolute_value), ]
+  
+  # Store the sorted coefficients dataframe in the results list
+  results_list[[i]] <- sorted_coefficients_df
+}
+
+```
+
+```{r}
+# Combine results_list into a single dataframe
+features_df <- bind_rows(results_list)
+
+# Calculate the sum of V1 for each feature
+sums_df <- features_df %>%
+  group_by(feature) %>%
+  summarise(absolute_value = sum(absolute_value)) %>%
+  arrange(desc(absolute_value))
+
+# Reorder levels of the factor variable
+sums_df$feature <- factor(sums_df$feature, levels = sums_df$feature[order(sums_df$absolute_value, decreasing = TRUE)])
+```
+
+```{r}
+ggplot(sums_df) +
+  geom_bar(aes(x = feature, y = absolute_value), stat = "identity", fill = "skyblue") +
+  geom_line(aes(x = feature, y = absolute_value, group = 1), stat = "identity", color = "blue",
+            size = 1.5) +
+  labs(x = "Feature", y = "Sum of Absolute Importance Values", title = "Feature Importance using PLSR") + theme_bw()  +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5)) +
+  geom_vline(xintercept = 3.5, color = "red", linetype = "solid",size=1)  # Add a vertical line
+
+```
+
+```{r}
+head(top_100, 3)['feature']
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
