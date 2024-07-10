@@ -1,0 +1,237 @@
+```{r}
+library(caTools)
+library(plsRcox)
+library(dplyr)
+library(caret)
+library(DescTools)
+```
+
+```{r}
+### OUS 
+ous <- merge(OUS_D2, response_ous, by="patient_id", all=FALSE)
+
+# Drop patient_id column 
+ous <- ous[, -which(names(ous) == "patient_id")]
+
+# Drop other columns 
+ous <- ous %>%
+  select(-LRC, -OS, -event_LRC, -event_OS)
+```
+ 
+```{r}
+### MAASTRO 
+maastro <- merge(MAASTRO_D2, maastro_response_full, by="patient_id", all=FALSE)
+
+# Drop patient_id column 
+maastro <- maastro[, -which(names(maastro) == "patient_id")]
+
+# Drop other columns 
+maastro <- maastro %>%
+  select(-LRC, -OS, -LRC_event, -OS_event)
+```
+
+```{r}
+X <- ous[, !names(ous) %in% c("DFS", "event_DFS")]
+y <- ous[, c("DFS", "event_DFS")]
+```
+
+```{r}
+set.seed(123)
+
+# Initialize a list to store the results
+results_list <- vector("list", length = 20)
+
+# Repeat the process 20 times
+for (i in 1:20) {
+  # Create train and test indices
+  trainIndex <- createDataPartition(ous$event_DFS, p = 0.8, list = FALSE, times = 1)
+  X_train <- X[trainIndex, ]
+
+  robust_scalar<- function(x){(x - median(x)) /(quantile(x,probs = .75) - quantile(x,probs = .25))}
+
+  X_train_std <- as.data.frame(lapply(X_train, robust_scalar))
+  
+  # Define the PLSR model with nt components
+  result <- plsRcox(X_train_std, time = y$DFS[trainIndex], event = y$event_DFS[trainIndex], nt = 10)
+  
+  coefficients_df <- as.data.frame(result$Coeffs)
+  # Add feature names as a new column
+  coefficients_df$feature <- rownames(coefficients_df)
+  
+  # Add an additional column for absolute values of coefficients
+  coefficients_df$absolute_value <- abs(coefficients_df$`V1`)
+  
+  # Sort the data frame based on the absolute values of the coefficients
+  sorted_coefficients_df <- coefficients_df[order(-coefficients_df$absolute_value), ]
+  
+  # Store the sorted coefficients dataframe in the results list
+  results_list[[i]] <- sorted_coefficients_df
+}
+
+```
+
+```{r}
+# Combine results_list into a single dataframe
+features_df <- bind_rows(results_list)
+
+# Calculate the sum of V1 for each feature
+sums_df <- features_df %>%
+  group_by(feature) %>%
+  summarise(absolute_value = sum(absolute_value)) %>%
+  arrange(desc(absolute_value))
+
+# Reorder levels of the factor variable
+sums_df$feature <- factor(sums_df$feature, levels = sums_df$feature[order(sums_df$absolute_value, decreasing = TRUE)])
+```
+
+```{r fig.align="center", echo = FALSE,fig.width = 80,fig.height = 20}
+ggplot(sums_df) +  
+  geom_bar(aes(x = feature, y = absolute_value),
+           stat = "identity", 
+           width = 0.8,
+           fill = "skyblue") +
+  geom_line(aes(x = feature, y = absolute_value, group = 1), 
+            stat = "identity", 
+            color = "blue",
+            size = 7) + 
+  geom_point(aes(x = feature, y = absolute_value),  
+             color = "red",
+             size = 3.5) +
+  labs(x = "Feature",
+       y = "Sum of Absolute Importance Values", 
+       title = "Feature Importance using Cox PLSR") +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0, size=15),
+        axis.text.y = element_text(angle = 180, hjust = 1, size=15),
+        axis.title.x = element_text(hjust = 0.5, size=45),
+        axis.title.y = element_text(angle = 90, hjust = 0.5, size=45),
+        plot.title = element_text(hjust = 0.5, size=60)) +
+  geom_vline(xintercept = 11.5, color = "red", linetype = "solid", size=3.5)  # Add a vertical line
+
+```
+
+```{r}
+head(sums_df, 11)['feature']
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+
+
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
